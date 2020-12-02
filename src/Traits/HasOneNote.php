@@ -47,7 +47,7 @@ trait HasOneNote
     public function createNote($content, $author = null, $reload = true)
     {
         if ($this->note)
-            $this->note->delete();
+            $this->note()->where('type', 'note')->delete();
 
         /** @var \Arcanedev\LaravelNotes\Models\Note $note */
         $note = $this->note()->create(
@@ -71,7 +71,7 @@ trait HasOneNote
      */
     public function updateNote($content, Model $author = null, $reload = true)
     {
-        $updated = $this->note->update(
+        $updated = $this->note()->where('type', 'note')->first()->update(
             $this->prepareNoteAttributes($content, $author)
         );
 
@@ -98,6 +98,7 @@ trait HasOneNote
         return [
             'author_id' => is_null($author) ? $this->getCurrentAuthorId() : $author->getKey(),
             'content'   => $content,
+            'type'      => 'note'
         ];
     }
 
@@ -109,5 +110,41 @@ trait HasOneNote
     protected function getCurrentAuthorId()
     {
         return null;
+    }
+
+    public function createComment($content, $author = null, $reload = true)
+    {
+        if ($this->note)
+            $this->note()->where('type', 'comment')->delete();
+
+        /** @var \Arcanedev\LaravelNotes\Models\Note $note */
+        $note = $this->note()->create(
+            $this->prepareCommentAttributes($content, $author)
+        );
+
+        if ($reload)
+            $this->load(['note']);
+
+        return $note;
+    }
+
+    protected function prepareCommentAttributes($content, Model $author = null)
+    {
+        return [
+            'author_id' => is_null($author) ? $this->getCurrentAuthorId() : $author->getKey(),
+            'content'   => $content,
+            'type'      => 'comment'
+        ];
+    }
+
+    public function updateComment($content, Model $author = null, $reload = true)
+    {
+        $updated = $this->note()->where('type', 'comment')->first()->update(
+            $this->prepareCommentAttributes($content, $author)
+        );
+
+        if ($reload) $this->load(['note']);
+
+        return $updated;
     }
 }

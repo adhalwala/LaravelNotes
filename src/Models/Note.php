@@ -37,6 +37,7 @@ class Note extends PrefixedModel
      */
     protected $fillable = [
         'content',
+        'type',
         'author_id',
     ];
 

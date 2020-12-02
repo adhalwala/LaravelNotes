@@ -94,6 +94,7 @@ trait HasManyNotes
         return [
             'author_id' => is_null($author) ? $this->getCurrentAuthorId() : $author->getKey(),
             'content'   => $content,
+            'type'      => 'note'
         ];
     }
 
@@ -105,5 +106,33 @@ trait HasManyNotes
     protected function getCurrentAuthorId()
     {
         return null;
+    }
+
+    public function createComment($content, $author = null, $reload = true)
+    {
+        /** @var \Arcanedev\LaravelNotes\Models\Note $note */
+        $note = $this->notes()->create(
+            $this->prepareCommentAttributes($content, $author)
+        );
+
+        if ($reload) {
+            $relations = array_merge(
+                ['notes'],
+                method_exists($this, 'authoredNotes') ? ['authoredNotes'] : []
+            );
+
+            $this->load($relations);
+        }
+
+        return $note;
+    }
+
+    protected function prepareCommentAttributes($content, Model $author = null)
+    {
+        return [
+            'author_id' => is_null($author) ? $this->getCurrentAuthorId() : $author->getKey(),
+            'content'   => $content,
+            'type'      => 'comment'
+        ];
     }
 }
