@@ -27,7 +27,7 @@ trait HasOneNote
      */
     public function note()
     {
-        return $this->morphOne(config('notes.notes.model'), 'noteable');
+        return $this->morphOne(config('notes.notes.model'), 'noteable')->where('type', 'note');
     }
 
     /* -----------------------------------------------------------------
@@ -47,7 +47,7 @@ trait HasOneNote
     public function createNote($content, $author = null, $reload = true)
     {
         if ($this->note)
-            $this->note()->where('type', 'note')->delete();
+            $this->note->delete();
 
         /** @var \Arcanedev\LaravelNotes\Models\Note $note */
         $note = $this->note()->create(
@@ -71,7 +71,7 @@ trait HasOneNote
      */
     public function updateNote($content, Model $author = null, $reload = true)
     {
-        $updated = $this->note()->where('type', 'note')->first()->update(
+        $updated = $this->note->update(
             $this->prepareNoteAttributes($content, $author)
         );
 
@@ -112,18 +112,23 @@ trait HasOneNote
         return null;
     }
 
+    public function comment()
+    {
+        return $this->morphOne(config('notes.notes.model'), 'noteable')->where('type', 'comment');
+    }
+
     public function createComment($content, $author = null, $reload = true)
     {
-        if ($this->note)
-            $this->note()->where('type', 'comment')->delete();
+        if ($this->comment)
+            $this->comment->delete();
 
         /** @var \Arcanedev\LaravelNotes\Models\Note $note */
-        $note = $this->note()->create(
+        $note = $this->comment()->create(
             $this->prepareCommentAttributes($content, $author)
         );
 
         if ($reload)
-            $this->load(['note']);
+            $this->load(['comment']);
 
         return $note;
     }
@@ -139,11 +144,11 @@ trait HasOneNote
 
     public function updateComment($content, Model $author = null, $reload = true)
     {
-        $updated = $this->note()->where('type', 'comment')->first()->update(
+        $updated = $this->comment->update(
             $this->prepareCommentAttributes($content, $author)
         );
 
-        if ($reload) $this->load(['note']);
+        if ($reload) $this->load(['comment']);
 
         return $updated;
     }

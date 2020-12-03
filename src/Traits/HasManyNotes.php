@@ -28,7 +28,7 @@ trait HasManyNotes
      */
     public function notes(): MorphMany
     {
-        return $this->morphMany((string) config('notes.notes.model'), 'noteable');
+        return $this->morphMany((string) config('notes.notes.model'), 'noteable')->where('type', 'note');
     }
 
     /* -----------------------------------------------------------------
@@ -108,16 +108,21 @@ trait HasManyNotes
         return null;
     }
 
+    public function comments(): MorphMany
+    {
+        return $this->morphMany((string) config('notes.notes.model'), 'noteable')->where('type', 'comment');
+    }
+
     public function createComment($content, $author = null, $reload = true)
     {
         /** @var \Arcanedev\LaravelNotes\Models\Note $note */
-        $note = $this->notes()->create(
+        $note = $this->comments()->create(
             $this->prepareCommentAttributes($content, $author)
         );
 
         if ($reload) {
             $relations = array_merge(
-                ['notes'],
+                ['comments'],
                 method_exists($this, 'authoredNotes') ? ['authoredNotes'] : []
             );
 
